@@ -212,11 +212,6 @@ export async function initConfigInteractive(repoPath: string): Promise<UserConfi
       type: "input",
       name: "learningFocus",
       message: "Learning focus areas (comma-separated, e.g., Performance, Testing, optional):",
-      filter: (input: string) =>
-        input
-          .split(",")
-          .map((s) => s.trim())
-          .filter((s) => s),
     },
     {
       type: "input",
@@ -224,11 +219,6 @@ export async function initConfigInteractive(repoPath: string): Promise<UserConfi
       message: "Tech stack (comma-separated, e.g., React, TypeScript, Node.js):",
       validate: (input: string) =>
         input.trim() !== "" || "At least one tech stack item is required",
-      filter: (input: string) =>
-        input
-          .split(",")
-          .map((s) => s.trim())
-          .filter((s) => s),
     },
     {
       type: "list",
@@ -262,6 +252,17 @@ export async function initConfigInteractive(repoPath: string): Promise<UserConfi
     },
   ]);
 
+  // Parse comma-separated inputs
+  const learningFocusArray = (answers.learningFocus as string)
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s);
+
+  const techStackArray = (answers.techStack as string)
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s);
+
   const config: UserConfig = {
     user: {
       name: answers.name as string,
@@ -272,11 +273,9 @@ export async function initConfigInteractive(repoPath: string): Promise<UserConfi
       company: (answers.company as string) || undefined,
       internStartDate: (answers.internStartDate as string) || undefined,
       careerGoals: (answers.careerGoals as string) || undefined,
-      learningFocus: (answers.learningFocus as string[]).length
-        ? (answers.learningFocus as string[])
-        : undefined,
+      learningFocus: learningFocusArray.length ? learningFocusArray : undefined,
     },
-    techStack: answers.techStack as string[],
+    techStack: techStackArray,
     timezone: answers.timezone as string,
     openai: {
       dailyModel: "gpt-4o-mini",
