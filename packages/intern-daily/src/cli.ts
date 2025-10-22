@@ -4,6 +4,7 @@ import { Command } from "commander";
 import { writeFileSafe } from "./fs";
 import { generateDailyReport } from "./index";
 import { GenerateOptions } from "./types";
+import { initConfigInteractive, configExists } from "./config";
 import { spawn } from "child_process";
 import path from "path";
 import pkg from "../package.json";
@@ -59,6 +60,29 @@ async function main() {
   const program = new Command();
   program.name("intern-daily").description("从 Git 提交生成当日日报的 CLI").version(pkg.version);
 
+  // Init command
+  program
+    .command("init")
+    .description("初始化配置文件")
+    .option("--repo <path>", "目标仓库路径", ".")
+    .action(async (cmd) => {
+      const repoPath = path.resolve(cmd.repo as string);
+
+      if (configExists(repoPath)) {
+        console.error("⚠️  配置文件已存在。如需重新配置，请先删除 .intern-daily.config.json");
+        process.exitCode = 1;
+        return;
+      }
+
+      try {
+        await initConfigInteractive(repoPath);
+      } catch (err) {
+        console.error(`❌ 初始化失败：${(err as Error).message}`);
+        process.exitCode = 1;
+      }
+    });
+
+  // Gen command
   program
     .command("gen")
     .description("生成 Markdown 日报")
