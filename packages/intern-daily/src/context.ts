@@ -269,8 +269,8 @@ export async function extractCodeContext(
           currentHunk.contextBefore = context.before;
           currentHunk.contextAfter = context.after;
         } catch (error) {
-          // File might be new or error getting content, skip context
-          console.warn(`Failed to get context for ${currentFile.filePath}:`, error);
+          // File might be new or error getting content, skip context (silent)
+          // This is expected for new files or files in commits without parent
         }
       }
 

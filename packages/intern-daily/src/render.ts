@@ -83,10 +83,7 @@ export function renderRuleMarkdown(stats: DayStats, opts: RenderOptions): string
   pieces.push("\n## 杠杆信号\n" + formatLeverageSignals(stats));
   pieces.push("\n## 关键改动摘要（按模块）\n" + formatModules(stats));
   pieces.push("\n## 详细提交\n" + formatCommits(stats));
-  pieces.push(
-    "\n## 次日计划（占位）\n- [ ] 抽象通用组件/补 a11y/补测试（结合今天的主要改动）\n- [ ] 跟进移动端适配或性能优化项\n- [ ] 与后端/RTC 同步接口变更情况"
-  );
-  pieces.push("\n> 由 intern-daily 自动生成");
+  pieces.push("\n---\n\n> 由 intern-daily 自动生成");
 
   return pieces.join("\n\n");
 }
