@@ -25,8 +25,26 @@ const IGNORE_PATTERNS = [
 ];
 
 const STATE_HOOKS = ["useState", "useReducer", "useEffect", "useRef", "useMemo", "useCallback"];
-const DATA_KEYWORDS = ["fetch", "axios", "swr", "WebRTC", "webrtc", "RTC", "socket", "graphql", "prisma"];
-const ACCESSIBILITY_KEYWORDS = ["aria-", "role=", "ariaLabel", "ariaDescribedby", "ariaHidden", "ariaLive", "alt="];
+const DATA_KEYWORDS = [
+  "fetch",
+  "axios",
+  "swr",
+  "WebRTC",
+  "webrtc",
+  "RTC",
+  "socket",
+  "graphql",
+  "prisma",
+];
+const ACCESSIBILITY_KEYWORDS = [
+  "aria-",
+  "role=",
+  "ariaLabel",
+  "ariaDescribedby",
+  "ariaHidden",
+  "ariaLive",
+  "alt=",
+];
 const TEST_KEYWORDS = ["describe(", "it(", "test(", "expect("];
 
 function hasExtension(path: string, exts: string[]): boolean {
@@ -243,7 +261,9 @@ function detectSkillTags(
   }
 
   if (
-    [...hints].some((hint) => DATA_KEYWORDS.some((kw) => hint.toLowerCase().includes(kw.toLowerCase()))) ||
+    [...hints].some((hint) =>
+      DATA_KEYWORDS.some((kw) => hint.toLowerCase().includes(kw.toLowerCase()))
+    ) ||
     hints.has("module:data")
   ) {
     tags.add("数据/接口/RTC");

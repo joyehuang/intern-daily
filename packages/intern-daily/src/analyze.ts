@@ -211,7 +211,7 @@ export async function collectDayStats(options: CollectOptions): Promise<CollectR
       getCommitDiff(repoPath, commit.sha),
     ]);
     const parsedDiffs = parseUnifiedDiff(diffText);
-    const diffMap = new Map<string, typeof parsedDiffs[number]>();
+    const diffMap = new Map<string, (typeof parsedDiffs)[number]>();
     parsedDiffs.forEach((entry) => diffMap.set(entry.path, entry));
 
     let commitHasHigh = false;
@@ -258,8 +258,8 @@ export async function collectDayStats(options: CollectOptions): Promise<CollectR
         const reasons = commitLowSignals.size
           ? Array.from(commitLowSignals).join("、")
           : totalDelta <= 20
-          ? "改动规模较小"
-          : "样式类微调";
+            ? "改动规模较小"
+            : "样式类微调";
         const detail = reasons ? `（${reasons}）` : "";
         lowCommitSummaries.push(`${label}${detail}`);
       }
@@ -288,7 +288,9 @@ export async function collectDayStats(options: CollectOptions): Promise<CollectR
     leverageNotes.push(`识别到 ${highFileHighlights.length} 个高杠杆改动，建议记录复盘。`);
   }
   if (lowFileHighlights.length) {
-    leverageNotes.push(`检测到 ${lowFileHighlights.length} 个疑似低杠杆改动，可考虑抽象/合并以提升杠杆。`);
+    leverageNotes.push(
+      `检测到 ${lowFileHighlights.length} 个疑似低杠杆改动，可考虑抽象/合并以提升杠杆。`
+    );
   }
   if (highCommitSummaries.length) {
     leverageNotes.push(`高杠杆提交 ${highCommitSummaries.length} 条。`);

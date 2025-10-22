@@ -9,9 +9,7 @@ interface RenderOptions {
 function formatOverview(stats: DayStats): string {
   const overview = stats.overview;
   const byKind = overview.byKind || {};
-  const topSkills = overview.topSkills.length
-    ? overview.topSkills.join("、")
-    : "暂无统计";
+  const topSkills = overview.topSkills.length ? overview.topSkills.join("、") : "暂无统计";
 
   const lines = [
     `- 提交数：${overview.commitCount}`,
@@ -43,9 +41,7 @@ function formatCommits(stats: DayStats): string {
   if (!stats.commits.length) {
     return "- 今日无提交";
   }
-  return stats.commits
-    .map((commit) => `- [${commit.sha7}] ${commit.subject}`)
-    .join("\n");
+  return stats.commits.map((commit) => `- [${commit.sha7}] ${commit.subject}`).join("\n");
 }
 
 function formatLeverageSignals(stats: DayStats): string {

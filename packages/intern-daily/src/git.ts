@@ -24,11 +24,7 @@ export async function ensureRepo(repoPath: string): Promise<void> {
   }
 }
 
-export async function runGit(
-  repoPath: string,
-  args: string[],
-  verbose = false
-): Promise<string> {
+export async function runGit(repoPath: string, args: string[], verbose = false): Promise<string> {
   if (verbose) {
     console.error(`[git] git ${args.join(" ")}`);
   }
@@ -68,10 +64,7 @@ export async function getCommits(
     });
 }
 
-export async function getCommitFileStats(
-  repoPath: string,
-  sha: string
-): Promise<GitFileStat[]> {
+export async function getCommitFileStats(repoPath: string, sha: string): Promise<GitFileStat[]> {
   const stdout = await runGit(repoPath, [
     "diff-tree",
     "--no-commit-id",

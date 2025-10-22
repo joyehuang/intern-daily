@@ -56,9 +56,7 @@ export function resolveTimeWindow(opts: TimeWindowOptions): TimeWindow {
     };
   }
 
-  const base = opts.date
-    ? DateTime.fromISO(opts.date, { zone: tz })
-    : DateTime.now().setZone(tz);
+  const base = opts.date ? DateTime.fromISO(opts.date, { zone: tz }) : DateTime.now().setZone(tz);
 
   if (!base.isValid) {
     throw new Error(`无法解析日期：${opts.date}`);

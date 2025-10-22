@@ -6,11 +6,7 @@ export async function ensureDirForFile(filePath: string): Promise<void> {
   await mkdir(dir, { recursive: true });
 }
 
-export function resolveOutputPath(
-  repoPath: string,
-  dateLabel: string,
-  explicit?: string
-): string {
+export function resolveOutputPath(repoPath: string, dateLabel: string, explicit?: string): string {
   if (explicit) {
     return resolve(explicit);
   }
