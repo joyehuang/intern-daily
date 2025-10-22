@@ -1,0 +1,9 @@
+{
+  "name": "intern-daily-monorepo",
+  "private": true,
+  "version": "0.0.1",
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "build": "pnpm -r build"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "name": "intern-daily",
+  "version": "0.0.1",
+  "description": "Generate daily markdown reports from Git activity with optional AI summary.",
+  "type": "commonjs",
+  "bin": {
+    "intern-daily": "dist/cli.js"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "pnpm run clean && tsc -p tsconfig.json",
+    "clean": "rm -rf dist",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "commander": "^11.1.0",
+    "luxon": "^3.4.4",
+    "dotenv": "^16.4.5",
+    "better-sqlite3": "^9.4.0",
+    "shiki": "^1.0.0",
+    "inquirer": "^9.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/luxon": "^3.0.0",
+    "@types/better-sqlite3": "^7.6.9",
+    "@types/inquirer": "^9.0.7",
+    "typescript": "^5.4.5",
+    "eslint": "^8.57.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "prettier": "^3.2.5"
+  }
+}
