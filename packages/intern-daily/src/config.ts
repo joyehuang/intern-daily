@@ -295,7 +295,34 @@ export async function initConfigInteractive(repoPath: string): Promise<UserConfi
   const configPath = getConfigPath(repoPath);
   saveConfig(configPath, config);
 
-  console.log(`\n✅ Configuration saved to: ${configPath}`);
+  // Initialize database and sync user profile
+  try {
+    const { InternDailyDB, initDatabase } = await import("./db");
+    const dbPath = path.join(repoPath, ".intern-daily.db");
+    const dbInstance = initDatabase(dbPath);
+    const db = new InternDailyDB(dbInstance);
+
+    db.userProfile.setProfile({
+      name: config.user.name,
+      school: config.user.school,
+      major: config.user.major,
+      year: config.user.year ? String(config.user.year) : undefined,
+      position: config.user.position,
+      company: config.user.company,
+      intern_start_date: config.user.internStartDate,
+      career_goals: config.user.careerGoals,
+      learning_focus: config.user.learningFocus,
+      tech_stack: config.techStack,
+      timezone: config.timezone,
+    });
+
+    console.log(`\n✅ Configuration saved to: ${configPath}`);
+    console.log(`✅ User profile synced to database: ${dbPath}`);
+  } catch (error) {
+    console.log(`\n✅ Configuration saved to: ${configPath}`);
+    console.warn(`⚠️ Failed to sync user profile to database: ${(error as Error).message}`);
+  }
+
   console.log("\n💡 Don't forget to set your OPENAI_API_KEY in .env file!");
   console.log('   Example: echo "OPENAI_API_KEY=sk-..." > .env\n');
 
