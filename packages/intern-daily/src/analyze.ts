@@ -198,7 +198,7 @@ export interface CollectResult {
 }
 
 export async function collectDayStats(options: CollectOptions): Promise<CollectResult> {
-  const { repoPath, window, maxCommits, includeUnstaged, verbose } = options;
+  const { repoPath, window, maxCommits, includeUnstaged } = options;
 
   const commits = await getCommits(repoPath, window.since, window.until, maxCommits);
   const aggregate = new Map<string, AggregateEntry>();

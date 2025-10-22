@@ -48,7 +48,9 @@ export async function aiSummarize(input: SummarizeInput, cfg: AiConfig): Promise
     throw new Error(`OpenAI ${res.status}: ${text}`);
   }
 
-  const data = await res.json();
+  const data = (await res.json()) as {
+    choices?: Array<{ message?: { content?: string } }>;
+  };
   const content = data?.choices?.[0]?.message?.content;
   if (!content) {
     throw new Error("OpenAI 未返回内容");

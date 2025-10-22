@@ -152,7 +152,7 @@ function touchesOnlyStyling(diff: ParsedFileDiff | undefined): boolean {
 
 function detectHighLeverageSignals(
   skillTags: SkillTag[],
-  hints: Set<string>,
+  _hints: Set<string>,
   diff: ParsedFileDiff | undefined
 ): string[] {
   const signals: string[] = [];
