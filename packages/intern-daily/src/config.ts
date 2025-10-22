@@ -5,7 +5,6 @@
 import fs from "fs";
 import path from "path";
 import { config as loadEnv } from "dotenv";
-import inquirer from "inquirer";
 
 /**
  * User configuration interface
@@ -160,6 +159,10 @@ export async function initConfigInteractive(repoPath: string): Promise<UserConfi
   console.log("\n🚀 Welcome to intern-daily!\n");
   console.log("Let's set up your profile to personalize AI-generated reports.\n");
 
+  // Dynamic import to avoid ESM issues
+  const inquirer = (await import("inquirer")).default;
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const answers = await inquirer.prompt([
     {
       type: "input",
