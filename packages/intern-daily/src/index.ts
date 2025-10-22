@@ -9,7 +9,6 @@ import { ensureRepo } from "./git";
 import { resolveTimeWindow } from "./time";
 import { collectDayStats } from "./analyze";
 import { renderRuleMarkdown } from "./render";
-import { aiSummarize } from "./summarize";
 import { GenerateOptions, TimeWindow } from "./types";
 import { InternDailyDB } from "./db";
 import { loadConfig, getConfigPath, configExists, UserConfig } from "./config";
@@ -65,7 +64,7 @@ export async function generateDailyReport(options: GenerateOptions): Promise<Gen
   }
 
   // Collect git statistics
-  const { stats, summarizeInput } = await collectDayStats({
+  const { stats } = await collectDayStats({
     repoPath,
     window,
     maxCommits: options.maxCommits,
@@ -223,18 +222,12 @@ export async function generateDailyReport(options: GenerateOptions): Promise<Gen
     }
   }
 
-  // Fallback to old AI summarization if config doesn't exist
-  if (aiEnabled && !markdown) {
-    try {
-      const content = await aiSummarize(summarizeInput, {
-        enabled: true,
-        model: undefined,
-      });
-      markdown = content;
-      usedAi = true;
-    } catch (err) {
-      notes.push(`AI 摘要失败（${(err as Error).message}）`);
-    }
+  // If AI is enabled but no config exists, prompt user to run init
+  if (aiEnabled && !markdown && !userConfig) {
+    notes.push(
+      "检测到 OPENAI_API_KEY，但未找到配置文件。" +
+        "运行 'intern-daily init' 配置用户信息以启用 AI 含金量评估功能。"
+    );
   }
 
   // Fallback to rule-based markdown

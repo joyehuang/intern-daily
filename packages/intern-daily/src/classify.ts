@@ -1,5 +1,5 @@
 import { ParsedFileDiff } from "./parse";
-import { FileChange, LeverageLevel, SkillTag } from "./types";
+import { FileChange, ContentValueLevel, SkillTag } from "./types";
 
 const STYLE_EXTENSIONS = [".css", ".scss", ".sass", ".less", ".styl", ".pcss"];
 const CONFIG_PATTERNS = [
@@ -150,7 +150,7 @@ function touchesOnlyStyling(diff: ParsedFileDiff | undefined): boolean {
   });
 }
 
-function detectHighLeverageSignals(
+function detectHighContentValueSignals(
   skillTags: SkillTag[],
   _hints: Set<string>,
   diff: ParsedFileDiff | undefined
@@ -189,7 +189,7 @@ function detectHighLeverageSignals(
   return signals;
 }
 
-function detectLowLeverageSignals(
+function detectLowContentValueSignals(
   kind: FileChange["kind"],
   skillTags: SkillTag[],
   diff: ParsedFileDiff | undefined,
@@ -209,23 +209,23 @@ function detectLowLeverageSignals(
   return signals;
 }
 
-function detectLeverage(
+function detectContentValue(
   kind: FileChange["kind"],
   skillTags: SkillTag[],
   hints: Set<string>,
   diff: ParsedFileDiff | undefined,
   adds: number,
   dels: number
-): { level: LeverageLevel; signals: string[] } {
-  const highSignals = detectHighLeverageSignals(skillTags, hints, diff);
+): { level: ContentValueLevel; signals: string[] } {
+  const highSignals = detectHighContentValueSignals(skillTags, hints, diff);
   if (highSignals.length > 0) {
     return { level: "high", signals: highSignals };
   }
-  const lowSignals = detectLowLeverageSignals(kind, skillTags, diff, adds, dels);
+  const lowSignals = detectLowContentValueSignals(kind, skillTags, diff, adds, dels);
   if (lowSignals.length > 0) {
     return { level: "low", signals: lowSignals };
   }
-  return { level: "neutral", signals: [] };
+  return { level: "medium", signals: [] };
 }
 
 function detectSkillTags(
@@ -298,7 +298,7 @@ export function buildFileChange(
   const hints = collectHints(path, diff);
   const module = deriveModule(path);
   const skillTags = detectSkillTags(path, kind, hints, diff);
-  const leverageInfo = detectLeverage(kind, skillTags, hints, diff, adds, dels);
+  const contentValueInfo = detectContentValue(kind, skillTags, hints, diff, adds, dels);
 
   return {
     path,
@@ -308,7 +308,7 @@ export function buildFileChange(
     hints: Array.from(hints).filter((hint) => !hint.startsWith("module:")),
     module,
     skillTags,
-    leverage: leverageInfo.level,
-    leverageSignals: leverageInfo.signals,
+    contentValue: contentValueInfo.level,
+    contentValueSignals: contentValueInfo.signals,
   };
 }

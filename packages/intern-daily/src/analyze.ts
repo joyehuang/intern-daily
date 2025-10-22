@@ -6,7 +6,7 @@ import {
   DayOverview,
   DayStats,
   FileChange,
-  LeverageLevel,
+  ContentValueLevel,
   SkillTag,
   SummarizeInput,
   TimeWindow,
@@ -21,8 +21,8 @@ interface AggregateEntry {
   hints: Set<string>;
   module: string;
   skillTags: Set<SkillTag>;
-  leverageScores: Record<LeverageLevel, number>;
-  leverageSignals: Set<string>;
+  contentValueScores: Record<ContentValueLevel, number>;
+  contentValueSignals: Set<string>;
 }
 
 const LOW_SUBJECT_REGEX = /(fix|tweak|update|adjust)\s*(ui|style|copy|padding|margin)?/i;
@@ -38,11 +38,11 @@ function ensureOverviewByKind(): Record<string, number> {
   };
 }
 
-function ensureLeverageCount(): Record<LeverageLevel, number> {
+function ensureContentValueCount(): Record<ContentValueLevel, number> {
   return {
     high: 0,
     low: 0,
-    neutral: 0,
+    medium: 0,
   };
 }
 
@@ -57,16 +57,16 @@ function mergeFileChange(agg: Map<string, AggregateEntry>, change: FileChange): 
     for (const tag of change.skillTags) {
       existing.skillTags.add(tag);
     }
-    if (typeof existing.leverageScores[change.leverage] !== "number") {
-      existing.leverageScores[change.leverage] = 0;
+    if (typeof existing.contentValueScores[change.contentValue] !== "number") {
+      existing.contentValueScores[change.contentValue] = 0;
     }
-    existing.leverageScores[change.leverage] += 1;
-    for (const signal of change.leverageSignals) {
-      existing.leverageSignals.add(signal);
+    existing.contentValueScores[change.contentValue] += 1;
+    for (const signal of change.contentValueSignals) {
+      existing.contentValueSignals.add(signal);
     }
   } else {
-    const scores: Record<LeverageLevel, number> = { high: 0, low: 0, neutral: 0 };
-    scores[change.leverage] = 1;
+    const scores: Record<ContentValueLevel, number> = { high: 0, low: 0, medium: 0 };
+    scores[change.contentValue] = 1;
     agg.set(change.path, {
       path: change.path,
       adds: change.adds,
@@ -75,15 +75,15 @@ function mergeFileChange(agg: Map<string, AggregateEntry>, change: FileChange): 
       hints: new Set(change.hints),
       module: change.module,
       skillTags: new Set(change.skillTags),
-      leverageScores: scores,
-      leverageSignals: new Set(change.leverageSignals),
+      contentValueScores: scores,
+      contentValueSignals: new Set(change.contentValueSignals),
     });
   }
 }
 
-function selectLeverageLevel(scores: Record<LeverageLevel, number>): LeverageLevel {
-  const priority: LeverageLevel[] = ["high", "neutral", "low"];
-  let best: LeverageLevel = "neutral";
+function selectContentValueLevel(scores: Record<ContentValueLevel, number>): ContentValueLevel {
+  const priority: ContentValueLevel[] = ["high", "medium", "low"];
+  let best: ContentValueLevel = "medium";
   let bestScore = -Infinity;
   let bestPriority = priority.indexOf(best);
   priority.forEach((level) => {
@@ -96,7 +96,7 @@ function selectLeverageLevel(scores: Record<LeverageLevel, number>): LeverageLev
     }
   });
   if (bestScore <= 0) {
-    return "neutral";
+    return "medium";
   }
   return best;
 }
@@ -110,8 +110,8 @@ function toFileChanges(map: Map<string, AggregateEntry>): FileChange[] {
     hints: Array.from(entry.hints),
     module: entry.module,
     skillTags: Array.from(entry.skillTags),
-    leverage: selectLeverageLevel(entry.leverageScores),
-    leverageSignals: Array.from(entry.leverageSignals),
+    contentValue: selectContentValueLevel(entry.contentValueScores),
+    contentValueSignals: Array.from(entry.contentValueSignals),
   }));
 }
 
@@ -147,17 +147,17 @@ function buildModuleHighlights(files: FileChange[]): DayStats["modules"] {
     if (hints) {
       parts.push(`关键词：${hints}`);
     }
-    if (file.leverage !== "neutral") {
-      const leverLabel = file.leverage === "high" ? "高杠杆" : "疑似低杠杆";
-      const signalText = file.leverageSignals.length
-        ? `（${file.leverageSignals.join("、")}）`
+    if (file.contentValue !== "medium") {
+      const valueLabel = file.contentValue === "high" ? "高含金量" : "疑似低含金量";
+      const signalText = file.contentValueSignals.length
+        ? `（${file.contentValueSignals.join("、")}）`
         : "";
-      parts.push(`杠杆判定：${leverLabel}${signalText}`);
+      parts.push(`含金量判定：${valueLabel}${signalText}`);
     }
     bucket.highlights.push(redact(parts.join("；")));
     bucket.evidence.add(redact(file.path));
     file.hints.forEach((hint) => bucket.evidence.add(redact(hint)));
-    file.leverageSignals.forEach((signal) => bucket.evidence.add(redact(signal)));
+    file.contentValueSignals.forEach((signal) => bucket.evidence.add(redact(signal)));
   }
 
   return Array.from(modules.entries()).map(([name, value]) => ({
@@ -169,10 +169,10 @@ function buildModuleHighlights(files: FileChange[]): DayStats["modules"] {
 
 function buildOverview(files: FileChange[], commits: Commit[]): DayOverview {
   const byKind = ensureOverviewByKind();
-  const leverage = ensureLeverageCount();
+  const contentValueCounts = ensureContentValueCount();
   for (const file of files) {
     byKind[file.kind] = (byKind[file.kind] || 0) + 1;
-    leverage[file.leverage] = (leverage[file.leverage] || 0) + 1;
+    contentValueCounts[file.contentValue] = (contentValueCounts[file.contentValue] || 0) + 1;
   }
   const topSkills = computeTopSkills(files);
   return {
@@ -180,7 +180,7 @@ function buildOverview(files: FileChange[], commits: Commit[]): DayOverview {
     fileCount: files.length,
     byKind,
     topSkills,
-    leverage,
+    contentValue: contentValueCounts,
   };
 }
 
@@ -225,14 +225,14 @@ export async function collectDayStats(options: CollectOptions): Promise<CollectR
       const diff = diffMap.get(stat.path);
       const change = buildFileChange(stat.path, stat.adds, stat.dels, diff);
       if (!change) continue;
-      if (change.leverage === "high") {
+      if (change.contentValue === "high") {
         commitHasHigh = true;
-        change.leverageSignals.forEach((signal) => commitHighSignals.add(redact(signal)));
-      } else if (change.leverage === "low") {
+        change.contentValueSignals.forEach((signal) => commitHighSignals.add(redact(signal)));
+      } else if (change.contentValue === "low") {
         if (!commitHasHigh) {
           commitHasLow = true;
         }
-        change.leverageSignals.forEach((signal) => commitLowSignals.add(redact(signal)));
+        change.contentValueSignals.forEach((signal) => commitLowSignals.add(redact(signal)));
       }
       mergeFileChange(aggregate, change);
     }
@@ -270,33 +270,33 @@ export async function collectDayStats(options: CollectOptions): Promise<CollectR
   const overview = buildOverview(files, commits);
   const modules = buildModuleHighlights(files);
   const highFileHighlights = files
-    .filter((file) => file.leverage === "high")
+    .filter((file) => file.contentValue === "high")
     .map((file) =>
       redact(
-        `${file.path}：${file.leverageSignals.length ? file.leverageSignals.join("、") : "跨层/高杠杆改动"}`
+        `${file.path}：${file.contentValueSignals.length ? file.contentValueSignals.join("、") : "跨层/高含金量改动"}`
       )
     );
   const lowFileHighlights = files
-    .filter((file) => file.leverage === "low")
+    .filter((file) => file.contentValue === "low")
     .map((file) =>
       redact(
-        `${file.path}：${file.leverageSignals.length ? file.leverageSignals.join("、") : "样式或重复性微调"}`
+        `${file.path}：${file.contentValueSignals.length ? file.contentValueSignals.join("、") : "样式或重复性微调"}`
       )
     );
-  const leverageNotes: string[] = [];
+  const contentValueNotes: string[] = [];
   if (highFileHighlights.length) {
-    leverageNotes.push(`识别到 ${highFileHighlights.length} 个高杠杆改动，建议记录复盘。`);
+    contentValueNotes.push(`识别到 ${highFileHighlights.length} 个高含金量改动，建议记录复盘。`);
   }
   if (lowFileHighlights.length) {
-    leverageNotes.push(
-      `检测到 ${lowFileHighlights.length} 个疑似低杠杆改动，可考虑抽象/合并以提升杠杆。`
+    contentValueNotes.push(
+      `检测到 ${lowFileHighlights.length} 个疑似低含金量改动，可考虑抽象/合并以提升含金量。`
     );
   }
   if (highCommitSummaries.length) {
-    leverageNotes.push(`高杠杆提交 ${highCommitSummaries.length} 条。`);
+    contentValueNotes.push(`高含金量提交 ${highCommitSummaries.length} 条。`);
   }
   if (lowCommitSummaries.length && lowCommitSummaries.length >= highCommitSummaries.length) {
-    leverageNotes.push(`疑似低杠杆提交 ${lowCommitSummaries.length} 条，留意样式类重复劳动。`);
+    contentValueNotes.push(`疑似低含金量提交 ${lowCommitSummaries.length} 条，留意样式类重复劳动。`);
   }
 
   const stats: DayStats = {
@@ -304,12 +304,13 @@ export async function collectDayStats(options: CollectOptions): Promise<CollectR
     files,
     overview,
     modules,
-    leverageSummary: {
+    contentValueSummary: {
       highFiles: highFileHighlights,
+      mediumFiles: [], // TODO: implement medium value file tracking
       lowFiles: lowFileHighlights,
       highCommits: highCommitSummaries,
       lowCommits: lowCommitSummaries,
-      notes: leverageNotes,
+      notes: contentValueNotes,
     },
   };
 
@@ -326,7 +327,7 @@ export async function collectDayStats(options: CollectOptions): Promise<CollectR
     overview,
     modules,
     commits: commits.map((commit) => ({ sha7: commit.sha7, subject: redact(commit.subject) })),
-    leverage: stats.leverageSummary,
+    contentValue: stats.contentValueSummary,
     unstaged: stats.unstaged,
   };
 

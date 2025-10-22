@@ -7,7 +7,7 @@ export type SkillTag =
   | "测试"
   | "工程化/配置";
 
-export type LeverageLevel = "high" | "low" | "neutral";
+export type ContentValueLevel = "high" | "medium" | "low";
 
 export interface Commit {
   sha: string;
@@ -24,8 +24,8 @@ export interface FileChange {
   hints: string[];
   module: string;
   skillTags: SkillTag[];
-  leverage: LeverageLevel;
-  leverageSignals: string[];
+  contentValue: ContentValueLevel;
+  contentValueSignals: string[];
 }
 
 export interface DayOverview {
@@ -33,7 +33,7 @@ export interface DayOverview {
   fileCount: number;
   byKind: Record<string, number>;
   topSkills: SkillTag[];
-  leverage: Record<LeverageLevel, number>;
+  contentValue: Record<ContentValueLevel, number>;
 }
 
 export interface ModuleSummary {
@@ -47,8 +47,9 @@ export interface DayStats {
   files: FileChange[];
   overview: DayOverview;
   modules: ModuleSummary[];
-  leverageSummary: {
+  contentValueSummary: {
     highFiles: string[];
+    mediumFiles: string[];
     lowFiles: string[];
     highCommits: string[];
     lowCommits: string[];
@@ -63,7 +64,7 @@ export interface SummarizeInput {
   overview: DayOverview;
   modules: ModuleSummary[];
   commits: Array<Pick<Commit, "sha7" | "subject">>;
-  leverage: DayStats["leverageSummary"];
+  contentValue: DayStats["contentValueSummary"];
   unstaged?: DayStats["unstaged"];
 }
 

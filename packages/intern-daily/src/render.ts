@@ -15,7 +15,7 @@ function formatOverview(stats: DayStats): string {
     `- 提交数：${overview.commitCount}`,
     `- 影响文件：${overview.fileCount}（TS/TSX: ${byKind.ts_tsx ?? 0}，样式: ${byKind.style ?? 0}，配置: ${byKind.config ?? 0}，其他: ${byKind.other ?? 0})`,
     `- 技能标签：${topSkills}`,
-    `- 杠杆评估：高 ${overview.leverage?.high ?? 0}，低 ${overview.leverage?.low ?? 0}，待判 ${overview.leverage?.neutral ?? 0}`,
+    `- 含金量评估：高 ${overview.contentValue?.high ?? 0}，中 ${overview.contentValue?.medium ?? 0}，低 ${overview.contentValue?.low ?? 0}`,
   ];
   if (stats.unstaged?.fileCount) {
     lines.push(`- 工作区未暂存变更：${stats.unstaged.fileCount} 文件（不计入提交）`);
@@ -44,29 +44,32 @@ function formatCommits(stats: DayStats): string {
   return stats.commits.map((commit) => `- [${commit.sha7}] ${commit.subject}`).join("\n");
 }
 
-function formatLeverageSignals(stats: DayStats): string {
-  const summary = stats.leverageSummary;
+function formatContentValueSignals(stats: DayStats): string {
+  const summary = stats.contentValueSummary;
   if (!summary) {
-    return "- 暂无杠杆信号";
+    return "- 暂无含金量分析";
   }
   const lines: string[] = [];
   if (summary.notes.length) {
     summary.notes.forEach((note) => lines.push(`- ${note}`));
   }
   if (summary.highFiles.length) {
-    lines.push(`- 高杠杆改动示例：${summary.highFiles.slice(0, 3).join("；")}`);
+    lines.push(`- 高含金量改动：${summary.highFiles.slice(0, 3).join("；")}`);
+  }
+  if (summary.mediumFiles && summary.mediumFiles.length) {
+    lines.push(`- 中等含金量改动：${summary.mediumFiles.slice(0, 3).join("；")}`);
   }
   if (summary.lowFiles.length) {
-    lines.push(`- 疑似低杠杆改动：${summary.lowFiles.slice(0, 3).join("；")}`);
+    lines.push(`- 低含金量改动：${summary.lowFiles.slice(0, 3).join("；")}`);
   }
   if (summary.highCommits.length) {
-    lines.push(`- 高杠杆提交：${summary.highCommits.slice(0, 3).join("；")}`);
+    lines.push(`- 高价值提交：${summary.highCommits.slice(0, 3).join("；")}`);
   }
   if (summary.lowCommits.length) {
-    lines.push(`- 低杠杆提交：${summary.lowCommits.slice(0, 3).join("；")}`);
+    lines.push(`- 低价值提交：${summary.lowCommits.slice(0, 3).join("；")}`);
   }
   if (!lines.length) {
-    return "- 暂无杠杆信号";
+    return "- 暂无含金量分析";
   }
   return lines.join("\n");
 }
@@ -80,7 +83,7 @@ export function renderRuleMarkdown(stats: DayStats, opts: RenderOptions): string
   }
 
   pieces.push("\n## 今日总体概览\n" + formatOverview(stats));
-  pieces.push("\n## 杠杆信号\n" + formatLeverageSignals(stats));
+  pieces.push("\n## 含金量分析\n" + formatContentValueSignals(stats));
   pieces.push("\n## 关键改动摘要（按模块）\n" + formatModules(stats));
   pieces.push("\n## 详细提交\n" + formatCommits(stats));
   pieces.push("\n---\n\n> 由 intern-daily 自动生成");
