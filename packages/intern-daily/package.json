@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "Generate daily markdown reports from Git activity with optional AI summary.",
   "type": "commonjs",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "bin": {
     "intern-daily": "dist/cli.js"
   },
